@@ -68,9 +68,17 @@ set_flag :: proc{
     set_flag_from_u8
 }
 
+clear_flag :: proc(reg: ^Register, val: ..FlagRegister){
+    for v, _ in val{
+        reg.f &= 0xF0 ~ u8(v)
+    }
+}
+
 @(private)
-set_flag_from_flag :: proc(reg: ^Register, val: FlagRegister){
-    reg.f |= u8(val)
+set_flag_from_flag :: proc(reg: ^Register, val: ..FlagRegister){
+    for v, _ in val{
+        reg.f |= u8(v)
+    }
 }
 
 @(private)

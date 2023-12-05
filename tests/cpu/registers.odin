@@ -336,7 +336,7 @@ test_set_flag_from_flag :: proc(t: ^testing.T){
     reg := cpu.Register{}
 
     cpu.set_flag(&reg, cpu.FlagRegister.Zero)
-    cpu.set_flag(&reg, cpu.FlagRegister.Carry)
+    cpu.set_flag(&reg, cpu.FlagRegister.Carry, cpu.FlagRegister.HalfCarry)
 
     expect :: struct{
         Zero: bool,
@@ -345,7 +345,54 @@ test_set_flag_from_flag :: proc(t: ^testing.T){
         Carry: bool
     }
 
-    expected := expect{true, false, false, true}
+    expected := expect{true, false, true, true}
+
+    result := cpu.get_flag(reg, cpu.FlagRegister.Zero)
+    testing.expect(
+        t, 
+        result == expected.Zero,
+        fmt.tprintf("Expected zero flag is: %t, got: %t", expected.Zero, result),
+    )
+
+    result = cpu.get_flag(reg, cpu.FlagRegister.Substract)
+    testing.expect(
+        t, 
+        result == expected.Substract,
+        fmt.tprintf("Expected substract flag is: %t, got: %t", expected.Substract, result),
+    )
+
+    result = cpu.get_flag(reg, cpu.FlagRegister.HalfCarry)
+    testing.expect(
+        t, 
+        result == expected.HalfCarry,
+        fmt.tprintf("Expected half carry flag is: %t, got: %t", expected.HalfCarry, result),
+    )
+
+    result = cpu.get_flag(reg, cpu.FlagRegister.Carry)
+    testing.expect(
+        t, 
+        result == expected.Carry,
+        fmt.tprintf("Expected carry flag is: %t, got: %t", expected.Carry, result),
+    )
+}
+
+@(test)
+test_clear_flag_register :: proc(t: ^testing.T){
+    reg := cpu.Register{
+        f = 240, // 0b1111_0000, set all flag to true
+    }
+    
+    cpu.clear_flag(&reg, cpu.FlagRegister.Zero)
+    cpu.clear_flag(&reg, cpu.FlagRegister.HalfCarry, cpu.FlagRegister.Carry)
+
+    expect :: struct{
+        Zero: bool,
+        Substract: bool,
+        HalfCarry: bool,
+        Carry: bool
+    }
+
+    expected := expect{false, true, false, false}
 
     result := cpu.get_flag(reg, cpu.FlagRegister.Zero)
     testing.expect(
