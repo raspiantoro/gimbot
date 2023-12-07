@@ -1,11 +1,11 @@
-package tests_cpu_registers
+package tests_cpu
 
 import "core:testing"
 import "core:fmt"
 import "../../cpu"
 
 @(test)
-test_get_af :: proc(t: ^testing.T){
+test_registers_get_af :: proc(t: ^testing.T){
     N :: 3
     
     regs := #soa[N]cpu.Register{}
@@ -28,7 +28,7 @@ test_get_af :: proc(t: ^testing.T){
 }
 
 @(test)
-test_set_af :: proc(t: ^testing.T){
+test_registers_set_af :: proc(t: ^testing.T){
     N :: 3
     
     afs := [N]u16{1289, 20387, 35327}
@@ -64,7 +64,7 @@ test_set_af :: proc(t: ^testing.T){
 }
 
 @(test)
-test_get_bc :: proc(t: ^testing.T){
+test_registers_get_bc :: proc(t: ^testing.T){
     N :: 3
     
     regs := #soa[N]cpu.Register{}
@@ -87,7 +87,7 @@ test_get_bc :: proc(t: ^testing.T){
 }
 
 @(test)
-test_set_bc :: proc(t: ^testing.T){
+test_registers_set_bc :: proc(t: ^testing.T){
     N :: 3
     
     bcs := [N]u16{1289, 20387, 35327}
@@ -124,7 +124,7 @@ test_set_bc :: proc(t: ^testing.T){
 }
 
 @(test)
-test_get_de :: proc(t: ^testing.T){
+test_registers_get_de :: proc(t: ^testing.T){
     N :: 3
     
     regs := #soa[N]cpu.Register{}
@@ -147,7 +147,7 @@ test_get_de :: proc(t: ^testing.T){
 }
 
 @(test)
-test_set_de :: proc(t: ^testing.T){
+test_registers_set_de :: proc(t: ^testing.T){
     N :: 3
     
     des := [N]u16{1289, 20387, 35327}
@@ -184,7 +184,7 @@ test_set_de :: proc(t: ^testing.T){
 }
 
 @(test)
-test_get_hl :: proc(t: ^testing.T){
+test_registers_get_hl :: proc(t: ^testing.T){
     N :: 3
     
     regs := #soa[N]cpu.Register{}
@@ -207,7 +207,7 @@ test_get_hl :: proc(t: ^testing.T){
 }
 
 @(test)
-test_set_hl :: proc(t: ^testing.T){
+test_registers_set_hl :: proc(t: ^testing.T){
     N :: 3
     
     hls := [N]u16{1289, 20387, 35327}
@@ -244,7 +244,7 @@ test_set_hl :: proc(t: ^testing.T){
 }
 
 @(test)
-test_get_flag :: proc(t: ^testing.T){
+test_registers_get_flag :: proc(t: ^testing.T){
     reg := cpu.Register{
         f = 96, // 0b0110_0000
     }
@@ -288,7 +288,7 @@ test_get_flag :: proc(t: ^testing.T){
 }
 
 @(test)
-test_set_flag_from_u8 :: proc(t: ^testing.T){
+test_registers_set_flag_from_u8 :: proc(t: ^testing.T){
     reg := cpu.Register{}
 
     cpu.set_flag(&reg, 80) // 80 = 0b0101_0000
@@ -332,7 +332,7 @@ test_set_flag_from_u8 :: proc(t: ^testing.T){
 }
 
 @(test)
-test_set_flag_from_flag :: proc(t: ^testing.T){
+test_registers_set_flag_from_flag :: proc(t: ^testing.T){
     reg := cpu.Register{}
 
     cpu.set_flag(&reg, cpu.FlagRegister.Zero)
@@ -377,7 +377,7 @@ test_set_flag_from_flag :: proc(t: ^testing.T){
 }
 
 @(test)
-test_clear_flag_register :: proc(t: ^testing.T){
+test_registers_clear_flag_register :: proc(t: ^testing.T){
     reg := cpu.Register{
         f = 240, // 0b1111_0000, set all flag to true
     }

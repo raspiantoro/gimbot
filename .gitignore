@@ -1,3 +1,5 @@
 gimbot
 /bin
-main.test.odin
+/rom
+*.bin
+*.DS_Store
