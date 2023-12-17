@@ -1,0 +1,3 @@
+package cartridge
+
+Ram :: struct{}

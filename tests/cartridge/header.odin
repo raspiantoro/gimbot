@@ -4,6 +4,7 @@ import "core:testing"
 import "core:fmt"
 import "core:strings"
 import "../../cartridge"
+import "../../cartridge/mbc"
 
 EndOfHeader :: 0x14F
 
@@ -11,17 +12,20 @@ EndOfHeader :: 0x14F
 test_header_get_title :: proc(t: ^testing.T){
     title_bytes := [cartridge.HEADER_TITLE.length]byte{70, 73, 71, 72, 84, 73, 78, 71, 32, 71, 65, 77, 69, 0, 0, 0} // "FIGHTING GAME"
 
-    cart := [EndOfHeader]byte{}
+    rom := make(mbc.Rom, EndOfHeader)
 
     for i := cartridge.HEADER_TITLE.start; i < cartridge.HEADER_TITLE.start + cartridge.HEADER_TITLE.length ; i += 1{
-        cart[i] = title_bytes[i - cartridge.HEADER_TITLE.start]
+        rom[i] = title_bytes[i - cartridge.HEADER_TITLE.start]
     }
 
-    cartridge.ctx.data = cart[:]
+    cart := cartridge.Cart{
+       mbc = mbc.setup_mbc(rom, cartridge.cart_type(&rom)),
+    }
+    
 
     expected_title := "FIGHTING GAME"
 
-    title := cartridge.title()
+    title := cartridge.title(cart->get_rom())
     testing.expect_value(t, strings.trim_null(title), expected_title)
 }
 
@@ -33,17 +37,19 @@ test_header_get_logo :: proc(t: ^testing.T){
         0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E,
     }
 
-    cart := [EndOfHeader]byte{}
+    rom := make(mbc.Rom, EndOfHeader)
 
     for i := cartridge.HEADER_LOGO.start; i < cartridge.HEADER_LOGO.start + cartridge.HEADER_LOGO.length ; i += 1{
-        cart[i] = logo_bytes[i - cartridge.HEADER_LOGO.start]
+        rom[i] = logo_bytes[i - cartridge.HEADER_LOGO.start]
     }
 
-    cartridge.ctx.data = cart[:]
+    cart := cartridge.Cart{
+        mbc = mbc.setup_mbc(rom, cartridge.cart_type(&rom)),
+     }
 
     expected_logo_bytes := logo_bytes
 
-    result := cartridge.logo()
+    result := cartridge.logo(cart->get_rom())
 
     for i :u16 = 0; i < cartridge.HEADER_LOGO.length; i += 1{
         testing.expect(
@@ -56,102 +62,110 @@ test_header_get_logo :: proc(t: ^testing.T){
 
 @(test)
 test_header_get_old_license :: proc(t: ^testing.T){
-    cart := [EndOfHeader]byte{}
-    cart[cartridge.HEADER_OLD_LICENSE_CODE.start] = 0x08 // capcom lic code
+    rom := make(mbc.Rom, EndOfHeader)
+    rom[cartridge.HEADER_OLD_LICENSE_CODE.start] = 0x08 // capcom lic code
 
-    cartridge.ctx.data = cart[:]
+    cart := cartridge.Cart{
+        mbc = mbc.setup_mbc(rom, cartridge.cart_type(&rom)),
+     }
 
     expected_license_name := "Capcom"
 
-    license_name := cartridge.license()
+    license_name := cartridge.license(cart->get_rom())
     testing.expect_value(t, license_name, expected_license_name)
 }
 
 @(test)
 test_header_get_new_license :: proc(t: ^testing.T){
-    cart := [EndOfHeader]byte{}
-    cart[cartridge.HEADER_OLD_LICENSE_CODE.start] = 0x33        // indicates using new license code
-    cart[cartridge.HEADER_NEW_LICENSE_CODE.start] = 0x35        // set high bytes of new license code
-    cart[cartridge.HEADER_NEW_LICENSE_CODE.start + 1] = 0x34    // set low bytes of new license code
+    rom := make(mbc.Rom, EndOfHeader)
+    rom[cartridge.HEADER_OLD_LICENSE_CODE.start] = 0x33        // indicates using new license code
+    rom[cartridge.HEADER_NEW_LICENSE_CODE.start] = 0x35        // set high bytes of new license code
+    rom[cartridge.HEADER_NEW_LICENSE_CODE.start + 1] = 0x34    // set low bytes of new license code
 
-    cartridge.ctx.data = cart[:]
+    cart := cartridge.Cart{
+        mbc = mbc.setup_mbc(rom, cartridge.cart_type(&rom)),
+     }
 
     expected_license_name := "Konami"
 
-    license_name := cartridge.license()
+    license_name := cartridge.license(cart->get_rom())
     testing.expect_value(t, license_name, expected_license_name)
 }
 
 @(test)
 test_header_valid_checksum :: proc(t: ^testing.T){
-    cart := [EndOfHeader]byte{}
-    cart[0x134] = 30     // checksum compute bytes
-    cart[0x135] = 30     // checksum compute bytes
-    cart[0x136] = 30     // checksum compute bytes
-    cart[0x137] = 30     // checksum compute bytes
-    cart[0x138] = 30     // checksum compute bytes
-    cart[0x139] = 30     // checksum compute bytes
-    cart[0x13A] = 30     // checksum compute bytes
-    cart[0x13B] = 30     // checksum compute bytes
-    cart[0x13C] = 30     // checksum compute bytes
-    cart[0x13D] = 30     // checksum compute bytes
-    cart[0x13E] = 30     // checksum compute bytes
-    cart[0x13F] = 30     // checksum compute bytes
-    cart[0x140] = 30     // checksum compute bytes
-    cart[0x141] = 30     // checksum compute bytes
-    cart[0x145] = 30     // checksum compute bytes
-    cart[0x146] = 30     // checksum compute bytes
-    cart[0x147] = 30     // checksum compute bytes
-    cart[0x148] = 30     // checksum compute bytes
-    cart[0x149] = 30     // checksum compute bytes
-    cart[0x14A] = 30     // checksum compute bytes
-    cart[0x14B] = 30     // checksum compute bytes
-    cart[0x14C] = 30     // checksum compute bytes
+    rom := make(mbc.Rom, EndOfHeader)
+    rom[0x134] = 30     // checksum compute bytes
+    rom[0x135] = 30     // checksum compute bytes
+    rom[0x136] = 30     // checksum compute bytes
+    rom[0x137] = 30     // checksum compute bytes
+    rom[0x138] = 30     // checksum compute bytes
+    rom[0x139] = 30     // checksum compute bytes
+    rom[0x13A] = 30     // checksum compute bytes
+    rom[0x13B] = 30     // checksum compute bytes
+    rom[0x13C] = 30     // checksum compute bytes
+    rom[0x13D] = 30     // checksum compute bytes
+    rom[0x13E] = 30     // checksum compute bytes
+    rom[0x13F] = 30     // checksum compute bytes
+    rom[0x140] = 30     // checksum compute bytes
+    rom[0x141] = 30     // checksum compute bytes
+    rom[0x145] = 30     // checksum compute bytes
+    rom[0x146] = 30     // checksum compute bytes
+    rom[0x147] = 30     // checksum compute bytes
+    rom[0x148] = 30     // checksum compute bytes
+    rom[0x149] = 30     // checksum compute bytes
+    rom[0x14A] = 30     // checksum compute bytes
+    rom[0x14B] = 30     // checksum compute bytes
+    rom[0x14C] = 30     // checksum compute bytes
 
     // checkusm value, compare with lower 8 bits of checksum bytes compute result of 0x134 to 0x14C
-    cart[cartridge.HEADER_CHECK_SUM.start] = 83  
+    rom[cartridge.HEADER_CHECK_SUM.start] = 83  
 
-    cartridge.ctx.data = cart[:]
+    cart := cartridge.Cart{
+        mbc = mbc.setup_mbc(rom, cartridge.cart_type(&rom)),
+     }
 
     expected_err :cartridge.CartridgeError = nil
 
-    err := cartridge.checksum()
+    err := cartridge.checksum(cart->get_rom())
     testing.expect_value(t, err, expected_err)
 }
 
 @(test)
 test_header_invalid_checksum :: proc(t: ^testing.T){
-    cart := [EndOfHeader]byte{}
-    cart[0x134] = 30     // checksum compute bytes
-    cart[0x135] = 30     // checksum compute bytes
-    cart[0x136] = 30     // checksum compute bytes
-    cart[0x137] = 30     // checksum compute bytes
-    cart[0x138] = 30     // checksum compute bytes
-    cart[0x139] = 30     // checksum compute bytes
-    cart[0x13A] = 30     // checksum compute bytes
-    cart[0x13B] = 30     // checksum compute bytes
-    cart[0x13C] = 30     // checksum compute bytes
-    cart[0x13D] = 30     // checksum compute bytes
-    cart[0x13E] = 30     // checksum compute bytes
-    cart[0x13F] = 30     // checksum compute bytes
-    cart[0x140] = 30     // checksum compute bytes
-    cart[0x141] = 30     // checksum compute bytes
-    cart[0x145] = 30     // checksum compute bytes
-    cart[0x146] = 30     // checksum compute bytes
-    cart[0x147] = 30     // checksum compute bytes
-    cart[0x148] = 30     // checksum compute bytes
-    cart[0x149] = 30     // checksum compute bytes
-    cart[0x14A] = 30     // checksum compute bytes
-    cart[0x14B] = 30     // checksum compute bytes
-    cart[0x14C] = 30     // checksum compute bytes
+    rom := make(mbc.Rom, EndOfHeader)
+    rom[0x134] = 30     // checksum compute bytes
+    rom[0x135] = 30     // checksum compute bytes
+    rom[0x136] = 30     // checksum compute bytes
+    rom[0x137] = 30     // checksum compute bytes
+    rom[0x138] = 30     // checksum compute bytes
+    rom[0x139] = 30     // checksum compute bytes
+    rom[0x13A] = 30     // checksum compute bytes
+    rom[0x13B] = 30     // checksum compute bytes
+    rom[0x13C] = 30     // checksum compute bytes
+    rom[0x13D] = 30     // checksum compute bytes
+    rom[0x13E] = 30     // checksum compute bytes
+    rom[0x13F] = 30     // checksum compute bytes
+    rom[0x140] = 30     // checksum compute bytes
+    rom[0x141] = 30     // checksum compute bytes
+    rom[0x145] = 30     // checksum compute bytes
+    rom[0x146] = 30     // checksum compute bytes
+    rom[0x147] = 30     // checksum compute bytes
+    rom[0x148] = 30     // checksum compute bytes
+    rom[0x149] = 30     // checksum compute bytes
+    rom[0x14A] = 30     // checksum compute bytes
+    rom[0x14B] = 30     // checksum compute bytes
+    rom[0x14C] = 30     // checksum compute bytes
 
     // checkusm value, compare with lower 8 bits of checksum bytes compute result of 0x134 to 0x14C
-    cart[cartridge.HEADER_CHECK_SUM.start] = 145  
+    rom[cartridge.HEADER_CHECK_SUM.start] = 145  
 
-    cartridge.ctx.data = cart[:]
+    cart := cartridge.Cart{
+        mbc = mbc.setup_mbc(rom, cartridge.cart_type(&rom)),
+     }
 
     expected_err := cartridge.CartridgeError.InvalidChecksum
 
-    err := cartridge.checksum()
+    err := cartridge.checksum(cart->get_rom())
     testing.expect_value(t, err, expected_err)
 }
